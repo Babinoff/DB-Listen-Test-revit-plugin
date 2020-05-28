@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>DBListenTest</Name>
+    <FullClassName>DBListenTest.App</FullClassName>
+    <!--<Text>RevitCloneElementsFromLinkToDirectShape</Text>-->
+    <!--<Description>Places the Group at Particular Point</Description>-->
+    <!--<VisibilityMode>AlwaysVisible</VisibilityMode>-->
+    <Assembly>DB-Listen-Test.dll</Assembly>
+    <AddInId>c8df6063-fad3-49ce-998e-0a04f3b4eda1</AddInId>
+    <VendorId>ABN</VendorId>
+    <VendorDescription>ABN</VendorDescription>
+  </AddIn>
+</RevitAddIns>
