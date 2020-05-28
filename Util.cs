@@ -99,8 +99,7 @@
 
                 foreach (TestData data in response.Data)
                 {
-                    response_list.Add(data.title);
-                    response_list.Add(data.text);
+                    response_list.Add(data.index);
                 }
 
                 //response_list.Add(response.ToString());
@@ -420,6 +419,6 @@
     public class TestData
     {
         public string title { get; set; }
-        public string text { get; set; }
+        public string index { get; set; }
     }
 }

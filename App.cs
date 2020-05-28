@@ -78,32 +78,71 @@
                 return rc;
             }
         }
-
         public static bool ToggleSubscription2(IExternalEventHandler handler)
         {
             if (Subscribed)
             {
-                LogToFile.Log("Unsubscribing...");
+                Util.Log("Unsubscribing...");
 
                 _event.Dispose();
                 _event = null;
 
                 button1.ItemText = _subscribe;
 
-                LogToFile.Log("Unsubscribed.");
+                //_timer.Stop();
+                //_timer.Report( "Subscription timing" );
+                //_timer = null;
+
+                Util.Log("Unsubscribed.");
             }
             else
             {
-                LogToFile.Log("Subscribing...");
+                Util.Log("Subscribing...");
 
                 _event = ExternalEvent.Create(handler);
 
                 button1.ItemText = _unsubscribe;
 
-                LogToFile.Log("Subscribed.");
+                //_timer = new JtTimer( "Subscription" );
+
+                Util.Log("Subscribed.");
             }
             return null != _event;
         }
+        //public static bool ToggleSubscription2(IExternalEventHandler handler)
+        //{
+        //    try
+        //    {
+        //        if (Subscribed)
+        //        {
+        //            LogToFile.Log("Unsubscribing...");
+
+        //            _event.Dispose();
+        //            _event = null;
+
+        //            button1.ItemText = _subscribe;
+
+        //            LogToFile.Log("Unsubscribed.");
+        //        }
+        //        else
+        //        {
+        //            LogToFile.Log("Subscribing...");
+
+        //            _event = ExternalEvent.Create(handler);
+
+        //            button1.ItemText = _unsubscribe;
+
+        //            LogToFile.Log("Subscribed.");
+        //        }
+        //        return null != _event;
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        var _logModel = new LoggerView("UpdateParam Exception", exception.ToString());
+        //        _logModel.Show();
+        //        return false;
+        //    }
+        //}
 
         /// <summary>
         /// Provide public read-only access to external event.
@@ -115,12 +154,23 @@
 
         public Result OnShutdown(UIControlledApplication a)
         {
-            if (Subscribed)
+            try
             {
-                _event.Dispose();
-                _event = null;
+                if (Subscribed)
+                {
+                    _event.Dispose();
+                    _event = null;
+                }
+                //_event.Dispose();
+                //_event = null;
+                return Result.Succeeded;
             }
-            return Result.Succeeded;
+            catch (Exception exception)
+            {
+                var _logModel = new LoggerView("UpdateParam Exception", exception.ToString());
+                _logModel.Show();
+                return Result.Failed;
+            }
         }
 
 

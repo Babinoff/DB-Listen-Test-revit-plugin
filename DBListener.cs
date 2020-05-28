@@ -47,7 +47,7 @@ namespace DBListenTest
         /// </summary>
         static public uint Init(string project_id)
         {
-            _project_id = project_id;
+            //_project_id = project_id;
 
             Timestamp = Util.UnixTimestamp();
 
@@ -66,7 +66,8 @@ namespace DBListenTest
         static List<string>
           _modified_door_records = null;
 
-        static double last_chek = 0;
+        static double last_chek = 999;
+        static int db_count = 0;
 
         /// <summary>
         /// Return the current modified door records 
@@ -80,50 +81,13 @@ namespace DBListenTest
             }
         }
 
-        public static List<string> GetDoorRecords(
-          string project_id,
-          uint timestamp = 0)
-        {
-            // Get all doors referencing this project.
-
-            //string query = "doors/project/" + project_id;
-            string query = "get-test";
-
-
-            if (0 < timestamp)
-            {
-                // Add timestamp to query.
-
-                Util.Log(string.Format(
-                  "Retrieving door documents modified after {0}",
-                  timestamp));
-
-                //query += "/newer/" + timestamp.ToString();
-            }
-
-            return Util.Get(query);
-        }
-
         static int _nLoopCount = 0;
 
-        /// <summary>
-        /// Count total number of checks for
-        /// database updates made so far.
-        /// </summary>
         static int _nCheckCount = 0;
 
-        /// <summary>
-        /// Count total number of database 
-        /// updates requested so far.
-        /// </summary>
         static int _nUpdatesRequested = 0;
 
-        /// <summary>
-        /// Number of milliseconds to wait and relinquish
-        /// CPU control before next check for pending
-        /// database updates.
-        /// </summary>
-        static int _timeout = 500;
+        static int _timeout = 1500;
 
         #region Windows API DLL Imports
         // DLL imports from user32.dll to set focus to
@@ -146,49 +110,55 @@ namespace DBListenTest
           IntPtr hWnd);
         #endregion // Windows API DLL Imports
 
+        static string query = "get-index";
+
         static void CheckForPendingDatabaseChanges()
         {
-            string query = "get-test";
+            //Util.Log("query: " + query); ///НЕЛЬЗЯ ЗАПУСКАТЬ ЛОГ ВНЕ ВАЙЛА ПОЧЕМУТО СОВСЕМ СОВСЕМ НЕЛЬЗЯ // unhandledExceptionFilter is executed in a non-main thread
+            //try
+            //{
             while (null != App.Event)
-            {
-                ++_nLoopCount;
+                {
+                    ++_nLoopCount;
 
-                if (App.Event.IsPending)
-                {
-                    Util.Log(string.Format(
-                      "CheckForPendingDatabaseChanges loop {0} - "
-                      + "database update event is pending",
-                      _nLoopCount));
-                }
-                else
-                {
-                    //using( JtTimer pt = new JtTimer(
-                    //  "CheckForPendingDatabaseChanges" ) )
+                    if (App.Event.IsPending)
                     {
+                        Util.Log(string.Format(
+                          "CheckForPendingDatabaseChanges loop {0} - "
+                          + "database update event is pending",
+                          _nLoopCount));
+                    }
+                    else
+                    {
+                        //using (JtTimer pt = new JtTimer(
+                        //  "CheckForPendingDatabaseChanges"))
+                        //{
                         ++_nCheckCount;
 
                         Util.Log(string.Format(
-                          "CheckForPendingDatabaseChanges loop {0} - "
-                          + "check for changes {1}",
-                          _nLoopCount, _nCheckCount));
+                            "CheckForPendingDatabaseChanges loop {0} - "
+                            + "check for changes {1}",
+                            _nLoopCount, _nCheckCount));
 
                         _modified_door_records = Util.Get(query);
 
-                        Util.Log("_modified_door_records: " + _modified_door_records.Count.ToString());
+                        Util.Log("Translate: " + _modified_door_records[0]);
 
-                        if (null != _modified_door_records && 0 < _modified_door_records.Count && last_chek !=_modified_door_records.Count)
+                        db_count = Convert.ToInt32(_modified_door_records[0]);
+
+                        if (null != _modified_door_records && 0 < _modified_door_records.Count && last_chek != db_count)
                         {
-                            last_chek = _modified_door_records.Count;
+                            last_chek = db_count;
                             App.Event.Raise(); //запуск БИМ УПДАТЕРА
-                            //UltimateLogCreator.log_string_list.Add(_modified_door_records.Count.ToString());
-                            //UltimateLogCreator.log_report();
+                                                //UltimateLogCreator.log_string_list.Add(_modified_door_records.Count.ToString());
+                                                //UltimateLogCreator.log_report();
                             ++_nUpdatesRequested;
 
-                            TaskDialog.Show("BD test", "hello world: " + _modified_door_records.Count);
+                            //TaskDialog.Show("BD test", "index change: " + db_count);
 
                             Util.Log(string.Format(
-                              "database update pending event raised {0} times",
-                              _nUpdatesRequested));
+                                "database update pending event raised {0} times",
+                                _nUpdatesRequested));
 
                             // Set focus to Revit for a moment.
                             // Otherwise, it may take a while before 
@@ -199,19 +169,23 @@ namespace DBListenTest
                             IntPtr hBefore = GetForegroundWindow();
 
                             SetForegroundWindow(
-                              ComponentManager.ApplicationWindow);
+                                ComponentManager.ApplicationWindow);
 
                             SetForegroundWindow(hBefore);
                         }
                     }
                 }
 
-                // Wait and relinquish control before
-                // next check for pending database updates.
-
                 Thread.Sleep(_timeout);
-            }
+                }
+            //}
+            //catch (Exception exception)
+            //{
+            //    var _logModel = new LoggerView("UpdateParam Exception", exception.ToString());
+            //    _logModel.Show();
+            //}
         }
+
 
         /// <summary>
         /// Separate thread running the loop
@@ -249,15 +223,5 @@ namespace DBListenTest
                 _thread = null;
             }
         }
-        //public static void CheckDatabase()
-        //{
-        //    while (bootun_togle || _nLoopCount < 20)
-        //    {
-        //        ++_nLoopCount;
-        //        //}
-        //        LogToFile.Log("1");
-        //        Thread.Sleep(_timeout);
-        //    }
-        //}
     }
 }

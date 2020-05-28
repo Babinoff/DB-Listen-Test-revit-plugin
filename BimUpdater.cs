@@ -2,7 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
+    using Autodesk.Revit.ApplicationServices;
+    using System.Linq;
     using Autodesk.Revit.DB;
     using Autodesk.Revit.UI;
     using Helpers;
@@ -11,22 +12,58 @@
         /// <summary>
         /// Update the BIM with the given database records.
         /// </summary>
+        /// 
+
         public static bool UpdateBim(Document doc, List<string> doors, ref string error_message)
         //List<DBData> doors,
         {
-            try 
+            try
             {
+                FilteredElementCollector f_collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
+                IList<Element> elements = f_collector.OfCategory(BuiltInCategory.OST_Furniture).ToElements();
 
-                TaskDialog.Show("BD test", "hello world: " + doors.Count);
-                //Stopwatch stopwatch = new Stopwatch();
-                //stopwatch.Start();
+                View activ_view = doc.ActiveView;
+                Application app = doc.Application;
 
-                //if (doors != null && doors.Count > 0)
-                //{
-                //    TaskDialog.Show("BD test", "hello world: " + doors.Count);
-                //}
+                var patternCollector = new FilteredElementCollector(doc.ActiveView.Document);
 
-                //stopwatch.Stop();
+                patternCollector.OfClass(typeof(Autodesk.Revit.DB.FillPatternElement));
+                Autodesk.Revit.DB.FillPatternElement solidFill =
+                    patternCollector.ToElements()
+                    .Cast<Autodesk.Revit.DB.FillPatternElement>()
+                    .First(x => x.GetFillPattern().IsSolidFill);
+
+                UIDocument uidoc = new UIDocument(doc);
+                Color color = new Color((byte)150, (byte)200, (byte)200);
+
+                OverrideGraphicSettings grafics = new OverrideGraphicSettings();
+                OverrideGraphicSettings grafics_clear = new OverrideGraphicSettings();
+
+                grafics.SetSurfaceForegroundPatternColor(color);
+                grafics.SetSurfaceForegroundPatternId(solidFill.Id);
+
+                int db_count = Convert.ToInt32(doors[0]);
+                int elem_count = 0;
+
+                //TaskDialog.Show("target", db_count.ToString());
+
+                using (Transaction t = new Transaction(doc))
+                {
+                    t.Start("db-test");
+
+                    foreach (Element elem in elements)
+                    {
+                        elem_count += 1;
+                        activ_view.SetElementOverrides(elem.Id, grafics_clear);
+                        if (elem_count == db_count)
+                        {
+                            activ_view.SetElementOverrides(elem.Id, grafics);
+                        }
+                    }
+
+                    uidoc.RefreshActiveView();
+                    t.Commit();
+                }
             }
             catch (Exception exception)
             {
@@ -39,21 +76,29 @@
             return true;
         }
 
-        public void Execute(UIApplication a)
+        public void Execute(UIApplication uiapp)
         {
-            uint timestamp_before_bim_update
-              = Util.UnixTimestamp();
+            try
+            {
+                uint timestamp_before_bim_update
+                  = Util.UnixTimestamp();
 
-            Document doc = a.ActiveUIDocument.Document;
+                Document doc = uiapp.ActiveUIDocument.Document;
 
-            string error_message = null;
+                string error_message = null;
 
-            bool rc = UpdateBim(doc, DBListener.ModifiedDoors, ref error_message);
+                bool rc = UpdateBim(doc, DBListener.ModifiedDoors, ref error_message);
+            }
+            catch (Exception exception)
+            {
+                var _logModel = new LoggerView("UpdateParam Exception", exception.ToString());
+                _logModel.Show();
+            }
         }
 
         public string GetName()
         {
-            return App.Caption + " " + GetType().Name;
+            return "bimUpdater";
         }
     }
 }

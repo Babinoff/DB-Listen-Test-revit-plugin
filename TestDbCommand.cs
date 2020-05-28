@@ -9,8 +9,6 @@
     using Helpers;
     //using Autodesk.Revit.UI.Selection;
 
-    using Helpers;
-
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
     public class TestDbCommand : IExternalCommand
@@ -19,15 +17,19 @@
         {
             try
             {
-                //Document doc = commandData.Application.ActiveUIDocument.Document;
+                Document doc = commandData.Application.ActiveUIDocument.Document;
                 //UIApplication uiapp = commandData.Application;
 
-                string query = "get-test";
+                string query = "get-index";
                 List<string> result = Util.Get(query);
 
-                TaskDialog.Show("test db counter:", result.Count.ToString());
+                //TaskDialog.Show("test db counter:", result.Count.ToString());
 
-                UltimateLogCreator.log_report_by_string_list("response" , result);
+                string error_message = null;
+                bool rc = BimUpdater.UpdateBim(doc, result, ref error_message);
+
+
+                //UltimateLogCreator.log_report_by_string_list("response" , result);
 
                 return Result.Succeeded;
             }

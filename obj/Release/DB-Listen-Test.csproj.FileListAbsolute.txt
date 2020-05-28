@@ -78,4 +78,3 @@ C:\code\git\DB-Listen-Test\obj\Release\DB-Listen-Test.csproj.CoreCompileInputs.c
 C:\code\git\DB-Listen-Test\obj\Release\DB-Listen-Test.csproj.CopyComplete
 C:\code\git\DB-Listen-Test\obj\Release\DB-Listen-Test.dll
 C:\code\git\DB-Listen-Test\obj\Release\DB-Listen-Test.pdb
-C:\code\git\DB-Listen-Test\obj\Release\DB-Listen-Test.csprojAssemblyReference.cache
